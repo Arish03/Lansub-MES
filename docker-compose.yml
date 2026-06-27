@@ -1,0 +1,102 @@
+version: "3.9"
+
+services:
+  mosquitto:
+    build:
+      context: ./mosquitto
+      dockerfile: Dockerfile
+      args:
+        MQTT_USER: ${MQTT_USER}
+        MQTT_PASS: ${MQTT_PASS}
+    container_name: lansub_mosquitto
+    # No host ports — MQTT is internal only (containers talk via lansub_net)
+    # ports: removed for security
+    volumes:
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - mosquitto_data:/mosquitto/data
+      - mosquitto_log:/mosquitto/log
+    networks:
+      - lansub_net
+    restart: unless-stopped
+
+  mongodb:
+    image: mongo:7.0
+    container_name: lansub_mongodb
+    ports:
+      - "5435:27017"  # Host:5435 → MongoDB container:27017 (internal use)
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASS}
+      MONGO_INITDB_DATABASE: ${MONGO_DB}
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - lansub_net
+    restart: unless-stopped
+
+  simulator:
+    build:
+      context: ./simulator
+      dockerfile: Dockerfile
+    container_name: lansub_simulator
+    depends_on:
+      - mosquitto
+    environment:
+      MQTT_HOST: mosquitto
+      MQTT_PORT: 1883
+      MQTT_USER: ${MQTT_USER}
+      MQTT_PASS: ${MQTT_PASS}
+      PUBLISH_INTERVAL: 1
+    networks:
+      - lansub_net
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: lansub_backend
+    ports:
+      - "8002:8000"  # Host:8002 → FastAPI container:8000
+    depends_on:
+      - mosquitto
+      - mongodb
+    environment:
+      MONGO_URL: mongodb://${MONGO_USER}:${MONGO_PASS}@mongodb:27017/${MONGO_DB}?authSource=admin
+      MONGO_DB: ${MONGO_DB}
+      MQTT_HOST: mosquitto
+      MQTT_PORT: 1883
+      MQTT_USER: ${MQTT_USER}
+      MQTT_PASS: ${MQTT_PASS}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ALGORITHM: HS256
+      JWT_EXPIRE_MINUTES: 1440
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+    networks:
+      - lansub_net
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: http://${VM_PUBLIC_IP}:8002
+        VITE_WS_URL: ws://${VM_PUBLIC_IP}:8002
+    container_name: lansub_frontend
+    ports:
+      - "3002:80"    # Host:3002 → Nginx container:80
+    depends_on:
+      - backend
+    networks:
+      - lansub_net
+    restart: unless-stopped
+
+networks:
+  lansub_net:
+    driver: bridge
+
+volumes:
+  mongo_data:
+  mosquitto_data:
+  mosquitto_log:
