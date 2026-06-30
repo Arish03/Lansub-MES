@@ -4,12 +4,12 @@ import logging
 import httpx
 from datetime import datetime, timedelta
 from typing import List, Optional
+from config import OLLAMA_BASE_URL, OLLAMA_MODEL
 
 log = logging.getLogger(__name__)
 
-# ── Ollama Configuration ─────────────────────────────────────────────────────
-OLLAMA_BASE_URL = "http://localhost:11434"
-OLLAMA_MODEL = "qwen3.5:latest"
+# Ollama configuration is loaded from environment variables via config.py
+# Set OLLAMA_BASE_URL and OLLAMA_MODEL in your .env file
 
 
 async def _generate_via_ollama(report_type: str, context: dict) -> str:
