@@ -21,6 +21,8 @@ log = logging.getLogger(__name__)
 
 MQTT_HOST = os.getenv("MQTT_HOST", "localhost")
 MQTT_PORT = int(os.getenv("MQTT_PORT", 1883))
+MQTT_USER = os.getenv("MQTT_USER", "")
+MQTT_PASS = os.getenv("MQTT_PASS", "")
 PUBLISH_INTERVAL = float(os.getenv("PUBLISH_INTERVAL", 1.0))
 
 
@@ -336,6 +338,10 @@ def main():
 
     client = mqtt.Client(client_id="lansub_simulator")
     client.on_connect = on_connect
+
+    # Set MQTT credentials if provided
+    if MQTT_USER:
+        client.username_pw_set(MQTT_USER, MQTT_PASS)
 
     # Retry connection until broker is ready
     while True:
