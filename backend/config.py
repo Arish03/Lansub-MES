@@ -8,6 +8,8 @@ MONGO_DB = os.getenv("MONGO_DB", "lansub_mes")
 
 MQTT_HOST = os.getenv("MQTT_HOST", "localhost")
 MQTT_PORT = int(os.getenv("MQTT_PORT", 1883))
+MQTT_USER = os.getenv("MQTT_USER", "")
+MQTT_PASS = os.getenv("MQTT_PASS", "")
 
 JWT_SECRET = os.getenv("JWT_SECRET", "local_dev_secret_change_in_production")
 JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")

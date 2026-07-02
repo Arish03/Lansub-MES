@@ -11,7 +11,7 @@ from datetime import datetime
 
 import paho.mqtt.client as mqtt
 
-from config import MQTT_HOST, MQTT_PORT
+from config import MQTT_HOST, MQTT_PORT, MQTT_USER, MQTT_PASS
 from database import get_db
 from services.bhogar_ai import analyze_telemetry
 from websocket_manager import ws_manager
@@ -112,6 +112,10 @@ def start_mqtt_client(loop: asyncio.AbstractEventLoop):
     client = mqtt.Client(client_id="lansub_backend")
     client.on_connect = _on_connect
     client.on_message = _on_message
+
+    # Set MQTT credentials if provided
+    if MQTT_USER:
+        client.username_pw_set(MQTT_USER, MQTT_PASS)
 
     def run():
         while True:
