@@ -81,8 +81,8 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        VITE_API_URL: http://${VM_PUBLIC_IP}:8002
-        VITE_WS_URL: ws://${VM_PUBLIC_IP}:8002
+        VITE_API_URL: https://mes.lansub.com
+        VITE_WS_URL: wss://mes.lansub.com
     container_name: lansub_frontend
     ports:
       - "3002:80"    # Host:3002 → Nginx container:80
