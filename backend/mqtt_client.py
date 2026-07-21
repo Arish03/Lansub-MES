@@ -6,6 +6,7 @@ runs Lansub AI analysis, stores to MongoDB, broadcasts via WebSocket.
 import asyncio
 import json
 import logging
+import os
 import threading
 from datetime import datetime
 
@@ -109,7 +110,7 @@ async def _handle_message(payload: dict):
 
 def start_mqtt_client(loop: asyncio.AbstractEventLoop):
     set_event_loop(loop)
-    client = mqtt.Client(client_id="lansub_backend")
+    client = mqtt.Client(client_id=f"lansub_backend_{os.getpid()}")
     client.on_connect = _on_connect
     client.on_message = _on_message
 
